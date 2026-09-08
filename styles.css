@@ -1,0 +1,284 @@
+:root {
+  color-scheme: dark;
+  font-family: Georgia, "Times New Roman", serif;
+  background: #18232b;
+  color: #f4ead4;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background: #18232b;
+}
+
+button {
+  font: inherit;
+}
+
+.page-shell {
+  width: min(1100px, calc(100% - 32px));
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 30px 0 24px;
+}
+
+.masthead {
+  margin: 0 0 18px;
+  text-align: center;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: #e8b86d;
+  font-family: "Trebuchet MS", Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 8px;
+  color: #f7e5ba;
+  font-size: clamp(30px, 5vw, 47px);
+  font-weight: 400;
+  line-height: 1.05;
+}
+
+.subtitle {
+  margin: 0;
+  color: #b8c6b5;
+  font-size: 16px;
+}
+
+.game-frame {
+  position: relative;
+  overflow: hidden;
+  border: 4px solid #e4c778;
+  background: #203940;
+  box-shadow: 0 0 0 4px #243039, 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+#game {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+}
+
+.hud {
+  position: absolute;
+  inset: 12px 12px auto;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  pointer-events: none;
+}
+
+.hud-label {
+  border: 2px solid #0e1d25;
+  background: #f1e4be;
+  color: #1b2930;
+  padding: 6px 9px;
+  font-family: "Trebuchet MS", Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.hud-hint {
+  max-width: 48%;
+  background: #22323a;
+  color: #f6e5bd;
+  border-color: #f1cd7e;
+  text-align: right;
+}
+
+.screen-overlay,
+.modal {
+  position: absolute;
+  inset: 0;
+  display: none;
+  place-items: center;
+  background: rgba(13, 23, 29, 0.72);
+}
+
+.screen-overlay {
+  display: grid;
+}
+
+.screen-overlay.is-hidden,
+.modal.is-hidden {
+  display: none;
+}
+
+.modal.is-visible {
+  display: grid;
+}
+
+.overlay-copy,
+.memory-card,
+.puzzle-card {
+  position: relative;
+  width: min(470px, calc(100% - 40px));
+  border: 3px solid #e6c875;
+  background: #203039;
+  box-shadow: 0 0 0 5px #152229, 0 16px 0 rgba(0, 0, 0, 0.22);
+  padding: 28px;
+  text-align: center;
+}
+
+.overlay-copy h2,
+.memory-card h2,
+.puzzle-card h2 {
+  margin-bottom: 12px;
+  color: #fff1c9;
+  font-size: 29px;
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.overlay-copy > p:not(.eyebrow),
+.memory-card > p:not(.eyebrow),
+.puzzle-card > p:not(.eyebrow) {
+  color: #d4dec8;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.primary-button,
+.rune-button {
+  cursor: pointer;
+  border: 2px solid #f4d987;
+  background: #b45042;
+  color: #fff5d2;
+  padding: 10px 16px;
+  box-shadow: inset 0 -3px 0 rgba(74, 25, 25, 0.38);
+}
+
+.primary-button:hover,
+.primary-button:focus-visible,
+.rune-button:hover,
+.rune-button:focus-visible {
+  outline: none;
+  background: #d2674f;
+}
+
+.icon-button {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+  border: 2px solid #f1cd7e;
+  background: #203039;
+  color: #fff1c9;
+  font-family: Arial, sans-serif;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.close-button {
+  top: 9px;
+  right: 9px;
+}
+
+.memory-image {
+  width: 100%;
+  height: 116px;
+  margin: 0 0 20px;
+  border: 3px solid #16242b;
+  background-color: #527e71;
+  background-position: center;
+  background-size: cover;
+  image-rendering: pixelated;
+}
+
+.memory-image.mytilene { background-color: #5685a1; }
+.memory-image.tenerife { background-color: #a85c3e; }
+.memory-image.florence { background-color: #b36d43; }
+.memory-image.summer-2026 { background-color: #3e7b69; }
+
+.memory-note {
+  margin-bottom: 0;
+  color: #e9bb6b !important;
+  font-style: italic;
+}
+
+.rune-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0 8px;
+}
+
+.rune-button {
+  width: 58px;
+  height: 58px;
+  padding: 0;
+  font-size: 28px;
+}
+
+.puzzle-status {
+  min-height: 24px;
+  margin-bottom: 0;
+  color: #e8b86d !important;
+}
+
+.controls {
+  padding-top: 17px;
+  color: #b8c6b5;
+  font-family: "Trebuchet MS", Arial, sans-serif;
+  font-size: 13px;
+  text-align: center;
+}
+
+.controls span {
+  padding: 0 7px;
+  color: #e4c778;
+}
+
+kbd {
+  display: inline-block;
+  min-width: 21px;
+  border: 1px solid #78878a;
+  background: #263840;
+  color: #f5e8c5;
+  padding: 1px 4px;
+  font: inherit;
+  text-align: center;
+}
+
+@media (max-width: 620px) {
+  .page-shell {
+    width: min(100% - 20px, 1100px);
+    padding-top: 20px;
+  }
+
+  .hud {
+    inset: 7px;
+  }
+
+  .hud-label {
+    padding: 4px 5px;
+    font-size: 10px;
+  }
+
+  .overlay-copy,
+  .memory-card,
+  .puzzle-card {
+    padding: 22px;
+  }
+}

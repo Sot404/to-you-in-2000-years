@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="el">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#18232b" />
+    <title>To You, in 2,000 Years</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <header class="masthead" aria-label="Game title">
+        <p class="eyebrow">A small world, made for one person</p>
+        <h1>To You, in 2,000 Years</h1>
+        <p class="subtitle">Οι αναμνήσεις μας δεν χάθηκαν. Απλώς περίμεναν να τις βρεις.</p>
+      </header>
+
+      <section class="game-frame" aria-label="Memory exploration game">
+        <canvas id="game" width="960" height="576" aria-label="Pixel art memory map"></canvas>
+        <div class="hud" aria-live="polite">
+          <div class="hud-label">Αναμνήσεις <span id="memory-count">0</span>/<span id="memory-total">0</span></div>
+          <div class="hud-label hud-hint" id="prompt">Πλησίασε ένα φως.</div>
+        </div>
+
+        <section class="screen-overlay" id="start-screen" aria-labelledby="start-title">
+          <div class="overlay-copy">
+            <p class="eyebrow">The atlas is waiting</p>
+            <h2 id="start-title">Μια διαδρομή πίσω σε εμάς.</h2>
+            <p>Κάθε φως στον χάρτη κρατά κάτι μικρό που δεν θέλω να ξεχάσουμε.</p>
+            <button class="primary-button" id="start-button" type="button">Ξεκίνα το ταξίδι</button>
+          </div>
+        </section>
+
+        <section class="modal" id="memory-modal" aria-hidden="true" aria-labelledby="memory-title">
+          <div class="memory-card">
+            <button class="icon-button close-button" id="close-memory" type="button" aria-label="Κλείσε την ανάμνηση">×</button>
+            <div class="memory-image" id="memory-image" aria-hidden="true"></div>
+            <p class="eyebrow" id="memory-place"></p>
+            <h2 id="memory-title"></h2>
+            <p id="memory-body"></p>
+            <p class="memory-note" id="memory-note"></p>
+          </div>
+        </section>
+
+        <section class="modal" id="puzzle-modal" aria-hidden="true" aria-labelledby="puzzle-title">
+          <div class="puzzle-card">
+            <button class="icon-button close-button" id="close-puzzle" type="button" aria-label="Κλείσε τον γρίφο">×</button>
+            <p class="eyebrow">The quiet gate</p>
+            <h2 id="puzzle-title">Η πύλη θέλει έναν παλιό κωδικό.</h2>
+            <p>Προς το παρόν είναι ένα μικρό προσχέδιο. Διάλεξε τα σημάδια με τη σειρά: φεγγάρι, λουλούδι, αστέρι.</p>
+            <div class="rune-row" aria-label="Rune puzzle">
+              <button class="rune-button" data-rune="moon" type="button" aria-label="Φεγγάρι">☾</button>
+              <button class="rune-button" data-rune="flower" type="button" aria-label="Λουλούδι">✦</button>
+              <button class="rune-button" data-rune="star" type="button" aria-label="Αστέρι">✧</button>
+            </div>
+            <p class="puzzle-status" id="puzzle-status"></p>
+          </div>
+        </section>
+      </section>
+
+      <footer class="controls">Κίνηση: <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> ή βελάκια <span>·</span> Εξερεύνηση: <kbd>E</kbd></footer>
+    </main>
+
+    <script src="data/memories.js"></script>
+    <script src="game.js"></script>
+  </body>
+</html>
