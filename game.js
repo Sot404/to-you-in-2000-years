@@ -59,7 +59,6 @@
     if (tx < 5 && ty < 20) return "water";
     if (tx === 5 && ty >= 14 && ty <= 20) return "bridge";
     if (inRect(tx, ty, 6, 17, 10, 3) || inRect(tx, ty, 14, 8, 3, 12) || inRect(tx, ty, 14, 7, 15, 3) || inRect(tx, ty, 28, 7, 3, 11) || inRect(tx, ty, 28, 16, 8, 3)) return "path";
-    if (inRect(tx, ty, 18, 3, 9, 4)) return "stone";
     if (tx === 25 && ty >= 9 && ty <= 12 && !state.gateOpen) return "gate";
     if ((tx === 3 && ty > 20) || (tx === 11 && ty === 13) || (tx === 12 && ty === 13) || (tx === 26 && ty === 14) || (tx === 37 && ty < 7)) return "tree";
     if ((tx * 17 + ty * 11) % 23 === 0) return "flowers";
@@ -106,14 +105,6 @@
       ctx.fillStyle = "#987b57";
       if ((tx + ty) % 3 === 0) ctx.fillRect(x + 6, y + 7, 6, 4);
       if ((tx * 3 + ty) % 4 === 0) ctx.fillRect(x + 16, y + 16, 4, 3);
-    }
-
-    if (terrain === "stone") {
-      ctx.fillStyle = "#798b87";
-      ctx.fillRect(x, y, tile, tile);
-      ctx.fillStyle = "#60736f";
-      ctx.fillRect(x + 2, y + 2, 8, 7);
-      ctx.fillRect(x + 13, y + 13, 8, 7);
     }
 
     if (terrain === "water") {
@@ -165,13 +156,18 @@
     ctx.fillStyle = "#f6d77a";
     ctx.fillRect(7 * tile + 5, 20 * tile - 10, 13, 9);
 
-    // A small observatory north of the Tenerife shrine.
-    ctx.fillStyle = "#415d6a";
-    ctx.fillRect(17 * tile + 5, 4 * tile + 7, 34, 29);
-    ctx.fillStyle = "#d7c184";
-    ctx.fillRect(18 * tile + 7, 3 * tile + 9, 25, 12);
-    ctx.fillStyle = "#25383f";
-    ctx.fillRect(20 * tile + 7, 5 * tile + 9, 10, 10);
+    // A compact lookout above the Tenerife path, leaving the meadow open.
+    ctx.fillStyle = "#705341";
+    ctx.fillRect(20 * tile + 8, 4 * tile + 10, 8, 31);
+    ctx.fillStyle = "#d5c27e";
+    ctx.fillRect(19 * tile + 9, 4 * tile + 4, 30, 8);
+    ctx.fillStyle = "#324c5a";
+    ctx.fillRect(20 * tile + 11, 5 * tile + 6, 15, 5);
+    ctx.fillStyle = "#8db6bb";
+    ctx.fillRect(20 * tile + 23, 5 * tile + 7, 7, 3);
+    ctx.fillStyle = "#476c4b";
+    ctx.fillRect(18 * tile + 5, 6 * tile + 9, 14, 12);
+    ctx.fillRect(23 * tile + 7, 6 * tile + 7, 13, 14);
   }
 
   function drawShrine(memory, time) {
@@ -299,10 +295,10 @@
   function move(delta) {
     let dx = 0;
     let dy = 0;
-    if (keys.has("ArrowUp") || keys.has("w")) dy -= 1;
-    if (keys.has("ArrowDown") || keys.has("s")) dy += 1;
-    if (keys.has("ArrowLeft") || keys.has("a")) dx -= 1;
-    if (keys.has("ArrowRight") || keys.has("d")) dx += 1;
+    if (keys.has("arrowup") || keys.has("w")) dy -= 1;
+    if (keys.has("arrowdown") || keys.has("s")) dy += 1;
+    if (keys.has("arrowleft") || keys.has("a")) dx -= 1;
+    if (keys.has("arrowright") || keys.has("d")) dx += 1;
     if (!dx && !dy) return;
     if (dx) player.direction = dx < 0 ? "left" : "right";
     if (dy) player.direction = dy < 0 ? "up" : "down";

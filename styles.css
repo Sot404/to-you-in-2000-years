@@ -56,6 +56,13 @@ h1 {
   line-height: 1.05;
 }
 
+.erased-years {
+  color: #d99b83;
+  text-decoration-line: line-through;
+  text-decoration-color: #d56555;
+  text-decoration-thickness: 3px;
+}
+
 .subtitle {
   margin: 0;
   color: #b8c6b5;
