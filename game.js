@@ -6,290 +6,209 @@
   ctx.imageSmoothingEnabled = false;
 
   const startScreen = document.querySelector("#start-screen");
-  const memoryModal = document.querySelector("#memory-modal");
-  const puzzleModal = document.querySelector("#puzzle-modal");
-  const memoryCount = document.querySelector("#memory-count");
-  const memoryTotal = document.querySelector("#memory-total");
+  const travelModal = document.querySelector("#puzzle-modal");
+  const travelTitle = document.querySelector("#puzzle-title");
+  const travelEyebrow = document.querySelector("#puzzle-modal .eyebrow");
+  const travelText = document.querySelector(".puzzle-card > p:not(.eyebrow):not(.puzzle-status)");
+  const travelStatus = document.querySelector("#puzzle-status");
   const prompt = document.querySelector("#prompt");
-  const memoryImage = document.querySelector("#memory-image");
-  const memoryPlace = document.querySelector("#memory-place");
-  const memoryTitle = document.querySelector("#memory-title");
-  const memoryBody = document.querySelector("#memory-body");
-  const memoryNote = document.querySelector("#memory-note");
-  const puzzleStatus = document.querySelector("#puzzle-status");
-
-  const tile = 24;
-  const columns = canvas.width / tile;
-  const rows = canvas.height / tile;
   const keys = new Set();
-  const seenMemories = new Set(JSON.parse(localStorage.getItem("to-you-seen-memories") || "[]"));
+
   const state = {
     running: false,
     modalOpen: true,
-    gateOpen: localStorage.getItem("to-you-gate-open") === "true",
-    runeInput: [],
     lastTime: 0,
   };
 
-  const player = { x: 6.5 * tile, y: 18.5 * tile, size: 15, speed: 130, direction: "down" };
-  const memories = window.MEMORIES.map((memory, index) => ({
-    ...memory,
-    x: [8, 15, 29, 34][index] * tile + tile / 2,
-    y: [18, 8, 7, 17][index] * tile + tile / 2,
-  }));
+  const mapImage = new Image();
+  mapImage.src = "background_1.png";
 
-  memoryTotal.textContent = String(memories.length);
-  updateMemoryCount();
+  const player = {
+    x: 170,
+    y: 458,
+    size: 18,
+    speed: 118,
+    direction: "right",
+  };
 
-  function saveProgress() {
-    localStorage.setItem("to-you-seen-memories", JSON.stringify([...seenMemories]));
-    localStorage.setItem("to-you-gate-open", String(state.gateOpen));
-  }
+  const pointsOfInterest = [
+    {
+      id: "campfire",
+      x: 144,
+      y: 453,
+      label: "The campsite",
+      title: "The campsite",
+      body: "This is where the map begins. The first memory can live here when you are ready to write it.",
+      status: "A quiet beginning.",
+      kind: "campfire",
+    },
+    {
+      id: "train",
+      x: 128,
+      y: 68,
+      label: "The train",
+      title: "The train is waiting.",
+      body: "This route will lead to a future map. We can decide together which memory belongs behind this station.",
+      status: "Destination not drawn yet.",
+      kind: "route",
+    },
+    {
+      id: "boat",
+      x: 864,
+      y: 283,
+      label: "The boat",
+      title: "The boat is tied to the dock.",
+      body: "This route will become a separate place to explore, with its own memories and its own small secrets.",
+      status: "Destination not drawn yet.",
+      kind: "route",
+    },
+    {
+      id: "plane",
+      x: 770,
+      y: 577,
+      label: "The airplane",
+      title: "The airplane has not left yet.",
+      body: "This route will take us somewhere further away. For now, it stays here as a promise of the next chapter.",
+      status: "Destination not drawn yet.",
+      kind: "route",
+    },
+  ];
 
-  function updateMemoryCount() {
-    memoryCount.textContent = String(seenMemories.size);
-  }
+  const blockedAreas = [
+    { x: 322, y: 304, width: 234, height: 156 },
+    { x: 890, y: 0, width: 70, height: 640 },
+    { x: 326, y: 126, width: 34, height: 183 },
+    { x: 365, y: 475, width: 27, height: 165 },
+  ];
 
-  function inRect(x, y, left, top, width, height) {
-    return x >= left && x < left + width && y >= top && y < top + height;
-  }
+  const seaWaves = [
+    [908, 42, 12], [928, 91, 9], [899, 157, 14], [929, 214, 10], [903, 337, 13],
+    [932, 421, 10], [906, 512, 14], [932, 586, 9], [868, 510, 12], [875, 388, 8],
+  ];
+  const lakeGlints = [[392, 333], [470, 354], [531, 379], [415, 424], [503, 443], [356, 394]];
+  const waterfallFrames = [[327, 148], [332, 183], [339, 224], [345, 266], [375, 502], [379, 545], [382, 602]];
 
-  function terrainAt(tx, ty) {
-    if (tx <= 0 || ty <= 0 || tx >= columns - 1 || ty >= rows - 1) return "tree";
-    if (tx < 5 && ty < 20) return "water";
-    if (tx === 5 && ty >= 14 && ty <= 20) return "bridge";
-    if (inRect(tx, ty, 6, 17, 10, 3) || inRect(tx, ty, 14, 8, 3, 12) || inRect(tx, ty, 14, 7, 15, 3) || inRect(tx, ty, 28, 7, 3, 11) || inRect(tx, ty, 28, 16, 8, 3)) return "path";
-    if (tx === 25 && ty >= 9 && ty <= 12 && !state.gateOpen) return "gate";
-    if ((tx === 3 && ty > 20) || (tx === 11 && ty === 13) || (tx === 12 && ty === 13) || (tx === 26 && ty === 14) || (tx === 37 && ty < 7)) return "tree";
-    if ((tx * 17 + ty * 11) % 23 === 0) return "flowers";
-    return "grass";
+  function pointInRect(x, y, rect) {
+    return x >= rect.x && x <= rect.x + rect.width && y >= rect.y && y <= rect.y + rect.height;
   }
 
   function isBlocked(x, y) {
-    const samples = [
-      [x - player.size / 2, y - player.size / 2],
-      [x + player.size / 2, y - player.size / 2],
-      [x - player.size / 2, y + player.size / 2],
-      [x + player.size / 2, y + player.size / 2],
-    ];
-    return samples.some(([sampleX, sampleY]) => {
-      const terrain = terrainAt(Math.floor(sampleX / tile), Math.floor(sampleY / tile));
-      return terrain === "water" || terrain === "tree" || terrain === "gate";
+    const padding = player.size / 2;
+    if (x < padding || y < padding || x > canvas.width - padding || y > canvas.height - padding) return true;
+    return blockedAreas.some((area) => pointInRect(x, y, area));
+  }
+
+  function drawWaterAnimation(time) {
+    const phase = Math.floor(time / 240) % 5;
+    ctx.save();
+    ctx.globalAlpha = 0.54;
+    ctx.fillStyle = "#d9f2ea";
+    seaWaves.forEach(([x, y, width], index) => {
+      const offset = (phase + index * 2) % 5;
+      ctx.fillRect(x + offset, y, width, 2);
     });
+
+    ctx.globalAlpha = 0.38;
+    lakeGlints.forEach(([x, y], index) => {
+      const width = index % 2 ? 5 : 8;
+      ctx.fillRect(x + ((phase + index) % 4), y, width, 2);
+    });
+
+    ctx.globalAlpha = 0.55;
+    waterfallFrames.forEach(([x, y], index) => {
+      const drift = (phase + index) % 4;
+      ctx.fillRect(x + drift, y, 3, 7);
+      ctx.fillRect(x - 2 + drift, y + 5, 2, 4);
+    });
+    ctx.restore();
   }
 
-  function drawTile(tx, ty, terrain, time) {
-    const x = tx * tile;
-    const y = ty * tile;
-    ctx.fillStyle = "#537851";
-    ctx.fillRect(x, y, tile, tile);
-
-    if (terrain === "grass" || terrain === "flowers") {
-      ctx.fillStyle = (tx + ty) % 2 ? "#4c724e" : "#5a8055";
-      ctx.fillRect(x, y, tile, tile);
-      ctx.fillStyle = "#3f6846";
-      ctx.fillRect(x + 4, y + 6, 2, 3);
-      ctx.fillRect(x + 16, y + 15, 2, 3);
-      if (terrain === "flowers") {
-        ctx.fillStyle = "#f4d780";
-        ctx.fillRect(x + 10, y + 10, 3, 3);
-        ctx.fillStyle = "#c66169";
-        ctx.fillRect(x + 8, y + 10, 2, 2);
-        ctx.fillRect(x + 13, y + 10, 2, 2);
-      }
-    }
-
-    if (terrain === "path") {
-      ctx.fillStyle = "#b89967";
-      ctx.fillRect(x, y, tile, tile);
-      ctx.fillStyle = "#987b57";
-      if ((tx + ty) % 3 === 0) ctx.fillRect(x + 6, y + 7, 6, 4);
-      if ((tx * 3 + ty) % 4 === 0) ctx.fillRect(x + 16, y + 16, 4, 3);
-    }
-
-    if (terrain === "water") {
-      ctx.fillStyle = "#356b82";
-      ctx.fillRect(x, y, tile, tile);
-      ctx.fillStyle = "#5f9cb1";
-      const offset = Math.floor(time / 350) % 5;
-      ctx.fillRect(x + (ty * 3 + offset) % 12, y + 7, 7, 2);
-      ctx.fillRect(x + (ty * 5 + offset * 2) % 13, y + 17, 5, 2);
-    }
-
-    if (terrain === "bridge") {
-      ctx.fillStyle = "#946d48";
-      ctx.fillRect(x, y, tile, tile);
-      ctx.fillStyle = "#684a35";
-      ctx.fillRect(x, y + 3, tile, 2);
-      ctx.fillRect(x, y + 14, tile, 2);
-      ctx.fillRect(x + 3, y, 2, tile);
-      ctx.fillRect(x + 18, y, 2, tile);
-    }
-
-    if (terrain === "tree") {
-      ctx.fillStyle = "#355b45";
-      ctx.fillRect(x, y, tile, tile);
-      ctx.fillStyle = "#254633";
-      ctx.fillRect(x + 3, y + 3, 18, 13);
-      ctx.fillStyle = "#4c7450";
-      ctx.fillRect(x + 6, y + 2, 12, 10);
-      ctx.fillStyle = "#68452f";
-      ctx.fillRect(x + 10, y + 16, 5, 8);
-    }
-
-    if (terrain === "gate") {
-      ctx.fillStyle = "#537851";
-      ctx.fillRect(x, y, tile, tile);
-      ctx.fillStyle = "#7a6648";
-      ctx.fillRect(x + 3, y, 4, tile);
-      ctx.fillRect(x + 17, y, 4, tile);
-      ctx.fillStyle = "#ddbc70";
-      ctx.fillRect(x + 9, y + 5, 6, 2);
-      ctx.fillRect(x + 11, y + 11, 2, 2);
-    }
+  function drawCampfire(time) {
+    const flicker = Math.floor(time / 120) % 3;
+    ctx.save();
+    ctx.globalAlpha = 0.18;
+    ctx.fillStyle = "#f5b957";
+    ctx.fillRect(133 - flicker, 444 - flicker, 22 + flicker * 2, 22 + flicker * 2);
+    ctx.globalAlpha = 0.92;
+    ctx.fillStyle = "#ffcf66";
+    ctx.fillRect(141, 446 - flicker, 6, 9 + flicker);
+    ctx.fillStyle = "#f36b3f";
+    ctx.fillRect(142, 451, 4, 7);
+    ctx.fillStyle = "#fff0a8";
+    ctx.fillRect(143, 447 - flicker, 2, 4);
+    ctx.restore();
   }
 
-  function drawLandmarks() {
-    // Dock lantern: the point where the journey begins.
-    ctx.fillStyle = "#6f4c35";
-    ctx.fillRect(7 * tile + 8, 20 * tile - 6, 7, 23);
-    ctx.fillStyle = "#f6d77a";
-    ctx.fillRect(7 * tile + 5, 20 * tile - 10, 13, 9);
-
-    // A compact lookout above the Tenerife path, leaving the meadow open.
-    ctx.fillStyle = "#705341";
-    ctx.fillRect(20 * tile + 8, 4 * tile + 10, 8, 31);
-    ctx.fillStyle = "#d5c27e";
-    ctx.fillRect(19 * tile + 9, 4 * tile + 4, 30, 8);
-    ctx.fillStyle = "#324c5a";
-    ctx.fillRect(20 * tile + 11, 5 * tile + 6, 15, 5);
-    ctx.fillStyle = "#8db6bb";
-    ctx.fillRect(20 * tile + 23, 5 * tile + 7, 7, 3);
-    ctx.fillStyle = "#476c4b";
-    ctx.fillRect(18 * tile + 5, 6 * tile + 9, 14, 12);
-    ctx.fillRect(23 * tile + 7, 6 * tile + 7, 13, 14);
-  }
-
-  function drawShrine(memory, time) {
-    const pulse = Math.floor(time / 240) % 2;
-    const x = memory.x;
-    const y = memory.y;
-    ctx.fillStyle = "#3c4f52";
-    ctx.fillRect(x - 9, y - 4, 18, 12);
-    ctx.fillStyle = "#c8b780";
-    ctx.fillRect(x - 4, y - 17, 8, 16);
-    ctx.fillStyle = "#f8df88";
-    ctx.fillRect(x - 3, y - 23 - pulse, 6, 7);
-    ctx.fillStyle = "#fff4bd";
-    ctx.fillRect(x - 1, y - 21 - pulse, 2, 3);
-    if (seenMemories.has(memory.id)) {
-      ctx.fillStyle = "#e76864";
-      ctx.fillRect(x + 6, y - 16, 4, 4);
-    }
+  function drawRouteMarker(point, time) {
+    const pulse = Math.floor(time / 330) % 3;
+    const y = point.y - 25 - pulse;
+    ctx.save();
+    ctx.globalAlpha = 0.9;
+    ctx.fillStyle = "#fff2a3";
+    ctx.fillRect(point.x - 2, y, 5, 5);
+    ctx.fillRect(point.x - 5, y + 2, 11, 1);
+    ctx.fillRect(point.x, y - 3, 1, 11);
+    ctx.restore();
   }
 
   function drawPlayer() {
     const x = Math.round(player.x - player.size / 2);
     const y = Math.round(player.y - player.size / 2);
-    ctx.fillStyle = "#282c3b";
-    ctx.fillRect(x + 3, y + 10, 9, 7);
-    ctx.fillStyle = "#d95f54";
-    ctx.fillRect(x + 2, y + 5, 11, 8);
-    ctx.fillStyle = "#f4c4a4";
-    ctx.fillRect(x + 4, y + 2, 7, 6);
-    ctx.fillStyle = "#4b2d36";
-    ctx.fillRect(x + 3, y, 9, 4);
-    ctx.fillStyle = "#f0d986";
-    if (player.direction === "left") ctx.fillRect(x + 1, y + 7, 2, 2);
-    if (player.direction === "right") ctx.fillRect(x + 12, y + 7, 2, 2);
+    ctx.fillStyle = "#1e2730";
+    ctx.fillRect(x + 4, y + 12, 10, 7);
+    ctx.fillStyle = "#b64f47";
+    ctx.fillRect(x + 2, y + 6, 14, 9);
+    ctx.fillStyle = "#f2be9d";
+    ctx.fillRect(x + 5, y + 2, 8, 7);
+    ctx.fillStyle = "#3d2932";
+    ctx.fillRect(x + 4, y, 10, 4);
+    ctx.fillStyle = "#f4dc88";
+    if (player.direction === "left") ctx.fillRect(x + 1, y + 8, 2, 2);
+    if (player.direction === "right") ctx.fillRect(x + 15, y + 8, 2, 2);
   }
 
   function draw(time) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let ty = 0; ty < rows; ty += 1) {
-      for (let tx = 0; tx < columns; tx += 1) {
-        drawTile(tx, ty, terrainAt(tx, ty), time);
-      }
+    if (mapImage.complete && mapImage.naturalWidth) {
+      ctx.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
+      drawWaterAnimation(time);
+      drawCampfire(time);
+      pointsOfInterest.filter((point) => point.kind === "route").forEach((point) => drawRouteMarker(point, time));
+      drawPlayer();
+      return;
     }
-    drawLandmarks();
-    memories.forEach((memory) => drawShrine(memory, time));
-    drawPlayer();
+    ctx.fillStyle = "#243b3c";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#f4d987";
+    ctx.font = "20px Georgia";
+    ctx.fillText("Loading the map...", 40, 60);
   }
 
-  function nearestInteractive() {
-    const threshold = 34;
-    const memory = memories.find((item) => Math.hypot(player.x - item.x, player.y - item.y) < threshold);
-    if (memory) return { type: "memory", value: memory };
-    if (!state.gateOpen && Math.hypot(player.x - 25 * tile, player.y - 10.5 * tile) < 50) return { type: "gate" };
-    return null;
+  function nearestPointOfInterest() {
+    return pointsOfInterest.find((point) => Math.hypot(player.x - point.x, player.y - point.y) < 38) || null;
   }
 
   function refreshPrompt() {
     if (!state.running || state.modalOpen) return;
-    const interactive = nearestInteractive();
-    if (interactive?.type === "memory") {
-      prompt.textContent = `E · ${interactive.value.title}`;
-    } else if (interactive?.type === "gate") {
-      prompt.textContent = "E · Η ήσυχη πύλη";
-    } else {
-      prompt.textContent = "Βρες τα μικρά φώτα στον χάρτη.";
-    }
+    const point = nearestPointOfInterest();
+    prompt.textContent = point ? `E · ${point.label}` : "Follow the paths.";
   }
 
-  function openMemory(memory) {
-    seenMemories.add(memory.id);
-    saveProgress();
-    updateMemoryCount();
-    memoryPlace.textContent = memory.place;
-    memoryTitle.textContent = memory.title;
-    memoryBody.textContent = memory.body;
-    memoryNote.textContent = memory.note;
-    memoryImage.className = `memory-image ${memory.id}`;
-    memoryImage.style.backgroundImage = memory.image ? `url("${memory.image}")` : "none";
+  function openPointOfInterest(point) {
     state.modalOpen = true;
-    memoryModal.classList.add("is-visible");
-    memoryModal.setAttribute("aria-hidden", "false");
+    travelEyebrow.textContent = point.kind === "campfire" ? "The first page" : "A route to another map";
+    travelTitle.textContent = point.title;
+    travelText.textContent = point.body;
+    travelStatus.textContent = point.status;
+    travelModal.classList.add("is-visible");
+    travelModal.setAttribute("aria-hidden", "false");
   }
 
-  function closeMemory() {
-    memoryModal.classList.remove("is-visible");
-    memoryModal.setAttribute("aria-hidden", "true");
+  function closeTravelModal() {
+    travelModal.classList.remove("is-visible");
+    travelModal.setAttribute("aria-hidden", "true");
     state.modalOpen = false;
     refreshPrompt();
-  }
-
-  function openPuzzle() {
-    state.modalOpen = true;
-    state.runeInput = [];
-    puzzleStatus.textContent = "";
-    puzzleModal.classList.add("is-visible");
-    puzzleModal.setAttribute("aria-hidden", "false");
-  }
-
-  function closePuzzle() {
-    puzzleModal.classList.remove("is-visible");
-    puzzleModal.setAttribute("aria-hidden", "true");
-    state.modalOpen = false;
-    refreshPrompt();
-  }
-
-  function playRune(rune) {
-    const code = ["moon", "flower", "star"];
-    state.runeInput.push(rune);
-    const currentIndex = state.runeInput.length - 1;
-    if (state.runeInput[currentIndex] !== code[currentIndex]) {
-      state.runeInput = [];
-      puzzleStatus.textContent = "Ο ήχος έσβησε. Δοκίμασε ξανά.";
-      return;
-    }
-    if (state.runeInput.length === code.length) {
-      state.gateOpen = true;
-      saveProgress();
-      puzzleStatus.textContent = "Η πύλη θυμήθηκε τον δρόμο.";
-      window.setTimeout(closePuzzle, 900);
-      return;
-    }
-    puzzleStatus.textContent = "Κάτι ακούστηκε πίσω από την πύλη...";
   }
 
   function move(delta) {
@@ -300,13 +219,14 @@
     if (keys.has("arrowleft") || keys.has("a")) dx -= 1;
     if (keys.has("arrowright") || keys.has("d")) dx += 1;
     if (!dx && !dy) return;
+
     if (dx) player.direction = dx < 0 ? "left" : "right";
     if (dy) player.direction = dy < 0 ? "up" : "down";
     const length = Math.hypot(dx, dy);
-    dx = (dx / length) * player.speed * delta;
-    dy = (dy / length) * player.speed * delta;
-    if (!isBlocked(player.x + dx, player.y)) player.x += dx;
-    if (!isBlocked(player.x, player.y + dy)) player.y += dy;
+    const targetX = player.x + (dx / length) * player.speed * delta;
+    const targetY = player.y + (dy / length) * player.speed * delta;
+    if (!isBlocked(targetX, player.y)) player.x = targetX;
+    if (!isBlocked(player.x, targetY)) player.y = targetY;
   }
 
   function gameLoop(time) {
@@ -323,24 +243,20 @@
     state.modalOpen = false;
     state.running = true;
     refreshPrompt();
-    canvas.focus();
   });
-  document.querySelector("#close-memory").addEventListener("click", closeMemory);
-  document.querySelector("#close-puzzle").addEventListener("click", closePuzzle);
-  document.querySelectorAll(".rune-button").forEach((button) => button.addEventListener("click", () => playRune(button.dataset.rune)));
+  document.querySelector("#close-puzzle").addEventListener("click", closeTravelModal);
 
   window.addEventListener("keydown", (event) => {
     const key = event.key.toLowerCase();
-    if (["arrowup", "arrowdown", "arrowleft", "arrowright", "w", "a", "s", "d", "e", "enter", "escape"].includes(key)) event.preventDefault();
-    if (key === "escape") {
-      if (memoryModal.classList.contains("is-visible")) closeMemory();
-      if (puzzleModal.classList.contains("is-visible")) closePuzzle();
+    const controlKeys = ["arrowup", "arrowdown", "arrowleft", "arrowright", "w", "a", "s", "d", "e", "enter", "escape"];
+    if (controlKeys.includes(key)) event.preventDefault();
+    if (key === "escape" && travelModal.classList.contains("is-visible")) {
+      closeTravelModal();
       return;
     }
     if ((key === "e" || key === "enter") && state.running && !state.modalOpen) {
-      const interactive = nearestInteractive();
-      if (interactive?.type === "memory") openMemory(interactive.value);
-      if (interactive?.type === "gate") openPuzzle();
+      const point = nearestPointOfInterest();
+      if (point) openPointOfInterest(point);
       return;
     }
     if (!state.modalOpen) keys.add(key);

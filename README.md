@@ -1,6 +1,6 @@
 # To You, in 2,000 Years
 
-A small desktop-first pixel-art exploration game about shared memories. It is a static site: no build step, packages, or server are required.
+A small desktop-first pixel-art exploration game about shared memories. It is a static site: no build step or packages are required.
 
 ## Run it
 
@@ -12,21 +12,20 @@ py -m http.server 4173
 
 Then open `http://localhost:4173`.
 
-## Add a memory
+## Hub map
 
-1. Put a compressed image in `assets/memories/`, for example `assets/memories/mytilene.jpg`.
-2. Edit the matching entry in `data/memories.js`.
-3. Set `image` to `"assets/memories/mytilene.jpg"`, then replace the `body` and `note` text.
+`background_1.png` is the first map. The player begins at the campsite in the lower-left area. The train, boat, and airplane are active routes that will later lead to their own maps and memories.
 
-The map and interactions are in `game.js`. Every entry in `data/memories.js` is intentionally self-contained so new material can be added gradually.
+The static pixel art is rendered on the canvas and stays intact. `game.js` layers small animations above it: sea and lake glints, waterfall movement, campfire flicker, and route markers.
 
-## First-draft puzzle and landmarks
+## Adding memories and maps
 
-- The dock lantern: the start of the first week in Mytilene.
-- The observatory: Tenerife and a shared song, star, or late-night detail.
-- The quiet gate: replace the current moon-flower-star code with an inside joke before the final version.
-- The four shrines: Mytilene, Tenerife, Florence, and Summer 2026.
+The first four memory entries live in `data/memories.js`; their prose and images can be completed gradually. A new route map can follow the same pattern:
+
+1. Add its pixel-art image as `background_2.png`, `background_3.png`, and so on.
+2. Add a route target and its spawn point in `game.js`.
+3. Place its photos in `assets/memories/` and reference them from `data/memories.js`.
 
 ## Publishing later
 
-The GitHub repository is private. GitHub Pages is usually public for personal accounts, so do not enable it until you choose a hosting/privacy approach. Netlify or Vercel can deploy this static project with access restrictions; another option is making the repository public only when the personal images have been removed or you are comfortable with them being reachable by URL.
+The GitHub repository is private. GitHub Pages may require a public repository depending on the GitHub plan, and published Pages sites are public. Decide on the hosting/privacy approach once the personal photos are in place.
