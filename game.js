@@ -24,9 +24,9 @@
   mapImage.src = "background_1.png";
 
   const player = {
-    x: 170,
-    y: 458,
-    size: 18,
+    x: 190,
+    y: 456,
+    size: 26,
     speed: 118,
     direction: "right",
   };
@@ -151,20 +151,32 @@
     ctx.restore();
   }
 
-  function drawPlayer() {
+  function drawPlayer(time) {
     const x = Math.round(player.x - player.size / 2);
     const y = Math.round(player.y - player.size / 2);
+    const markerBob = Math.floor(time / 240) % 2;
+    ctx.save();
+    ctx.globalAlpha = 0.48;
+    ctx.fillStyle = "#152127";
+    ctx.fillRect(x + 4, y + 24, 18, 3);
+    ctx.restore();
     ctx.fillStyle = "#1e2730";
-    ctx.fillRect(x + 4, y + 12, 10, 7);
+    ctx.fillRect(x + 5, y + 10, 16, 15);
     ctx.fillStyle = "#b64f47";
-    ctx.fillRect(x + 2, y + 6, 14, 9);
+    ctx.fillRect(x + 4, y + 8, 18, 13);
     ctx.fillStyle = "#f2be9d";
-    ctx.fillRect(x + 5, y + 2, 8, 7);
+    ctx.fillRect(x + 8, y + 3, 10, 8);
     ctx.fillStyle = "#3d2932";
-    ctx.fillRect(x + 4, y, 10, 4);
+    ctx.fillRect(x + 7, y, 12, 5);
+    ctx.fillStyle = "#dce8d1";
+    ctx.fillRect(x + 3, y + 13, 3, 8);
     ctx.fillStyle = "#f4dc88";
-    if (player.direction === "left") ctx.fillRect(x + 1, y + 8, 2, 2);
-    if (player.direction === "right") ctx.fillRect(x + 15, y + 8, 2, 2);
+    if (player.direction === "left") ctx.fillRect(x + 2, y + 10, 3, 3);
+    if (player.direction === "right") ctx.fillRect(x + 21, y + 10, 3, 3);
+    ctx.fillStyle = "#fff0a8";
+    ctx.fillRect(x + 11, y - 8 - markerBob, 4, 4);
+    ctx.fillRect(x + 9, y - 6 - markerBob, 8, 1);
+    ctx.fillRect(x + 12, y - 10 - markerBob, 1, 8);
   }
 
   function draw(time) {
@@ -174,7 +186,7 @@
       drawWaterAnimation(time);
       drawCampfire(time);
       pointsOfInterest.filter((point) => point.kind === "route").forEach((point) => drawRouteMarker(point, time));
-      drawPlayer();
+      drawPlayer(time);
       return;
     }
     ctx.fillStyle = "#243b3c";
