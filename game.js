@@ -88,6 +88,28 @@
     }
   }
 
+  function clearMaskArea(mask, left, top, width, height) {
+    const right = Math.min(canvas.width, left + width);
+    const bottom = Math.min(canvas.height, top + height);
+    for (let y = Math.max(0, top); y < bottom; y += 1) {
+      for (let x = Math.max(0, left); x < right; x += 1) mask[indexAt(x, y)] = 0;
+    }
+  }
+
+  function simplifyRightSea(walkable, swimmable) {
+    // The freehand sea annotation had several small islands. Replace it with one connected swim area.
+    clearMaskArea(swimmable, 790, 250, 170, 350);
+    paintDisc(swimmable, 839, 358, 23);
+    paintConnection(swimmable, 839, 358, 880, 365, 30);
+    paintDisc(swimmable, 890, 365, 67);
+    paintDisc(swimmable, 890, 440, 72);
+    paintDisc(swimmable, 892, 522, 47);
+
+    // A short piece of shore connects the main path to a deliberate swim entrance.
+    paintDisc(walkable, 799, 356, 12);
+    paintConnection(walkable, 775, 340, 799, 356, 9);
+  }
+
   function prepareCollisionMap() {
     if (!mapImage.complete || !collisionNotesImage.complete || !mapImage.naturalWidth || !collisionNotesImage.naturalWidth) return;
     const referenceCanvas = document.createElement("canvas");
@@ -126,6 +148,7 @@
     paintDisc(walkable, 770, 577, 23);
     paintConnection(walkable, 655, 550, 770, 577, 11);
     paintDisc(walkable, 864, 283, 20);
+    simplifyRightSea(walkable, swimmable);
     collision = { walkable, swimmable, shrineZones };
     const spawn = nearestMaskedPoint(player.x, player.y, collision.walkable);
     player.x = spawn.x;
