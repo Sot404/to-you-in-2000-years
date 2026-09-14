@@ -21,6 +21,10 @@
           <div class="hud-label">Maps <span id="memory-count">1</span>/<span id="memory-total">4</span></div>
           <div class="hud-label hud-hint" id="prompt">Πλησίασε ένα φως.</div>
         </div>
+        <button class="inventory-button" id="inventory-button" type="button" aria-label="Open memory inventory" title="Memory inventory">
+          <span class="inventory-glyph" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          <span class="inventory-count" id="inventory-count">0</span>
+        </button>
 
         <section class="screen-overlay" id="start-screen" aria-labelledby="start-title">
           <div class="overlay-copy">
@@ -34,11 +38,29 @@
         <section class="modal" id="memory-modal" aria-hidden="true" aria-labelledby="memory-title">
           <div class="memory-card">
             <button class="icon-button close-button" id="close-memory" type="button" aria-label="Κλείσε την ανάμνηση">×</button>
-            <div class="memory-image" id="memory-image" aria-hidden="true"></div>
+            <div class="memory-photo-frame">
+              <div class="memory-photo-wrap">
+                <img class="memory-photo" id="memory-photo" alt="" hidden />
+                <div class="memory-photo-empty" id="memory-photo-empty">A photo belongs here.</div>
+              </div>
+              <button class="photo-nav photo-previous" id="memory-previous" type="button" aria-label="Previous photo">&larr;</button>
+              <button class="photo-nav photo-next" id="memory-next" type="button" aria-label="Next photo">&rarr;</button>
+            </div>
+            <p class="photo-index" id="memory-photo-index"></p>
             <p class="eyebrow" id="memory-place"></p>
             <h2 id="memory-title"></h2>
             <p id="memory-body"></p>
             <p class="memory-note" id="memory-note"></p>
+          </div>
+        </section>
+
+        <section class="modal" id="inventory-modal" aria-hidden="true" aria-labelledby="inventory-title">
+          <div class="inventory-card">
+            <button class="icon-button close-button" id="close-inventory" type="button" aria-label="Close inventory">&times;</button>
+            <p class="eyebrow">The collected pages</p>
+            <h2 id="inventory-title">Memory inventory</h2>
+            <p class="inventory-intro" id="inventory-intro">The memories you discover will stay here.</p>
+            <div class="inventory-grid" id="inventory-grid"></div>
           </div>
         </section>
 

@@ -112,6 +112,55 @@ h1 {
   text-align: right;
 }
 
+.inventory-button {
+  position: absolute;
+  top: 52px;
+  right: 12px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  border: 2px solid #f1cd7e;
+  background: #203039;
+  box-shadow: 2px 2px 0 #101b20;
+}
+
+.inventory-button:hover,
+.inventory-button:focus-visible {
+  outline: none;
+  background: #38505a;
+}
+
+.inventory-glyph {
+  display: grid;
+  grid-template-columns: repeat(2, 6px);
+  gap: 2px;
+}
+
+.inventory-glyph i {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border: 1px solid #18232b;
+  background: #f3df9e;
+}
+
+.inventory-count {
+  position: absolute;
+  right: -7px;
+  bottom: -7px;
+  display: grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+  border: 1px solid #17242b;
+  background: #b45042;
+  color: #fff5d2;
+  font: 700 10px/1 "Trebuchet MS", Arial, sans-serif;
+}
+
 .screen-overlay,
 .modal {
   position: absolute;
@@ -136,7 +185,8 @@ h1 {
 
 .overlay-copy,
 .memory-card,
-.puzzle-card {
+.puzzle-card,
+.inventory-card {
   position: relative;
   width: min(470px, calc(100% - 40px));
   border: 3px solid #e6c875;
@@ -148,7 +198,8 @@ h1 {
 
 .overlay-copy h2,
 .memory-card h2,
-.puzzle-card h2 {
+.puzzle-card h2,
+.inventory-card h2 {
   margin-bottom: 12px;
   color: #fff1c9;
   font-size: 29px;
@@ -158,7 +209,8 @@ h1 {
 
 .overlay-copy > p:not(.eyebrow),
 .memory-card > p:not(.eyebrow),
-.puzzle-card > p:not(.eyebrow) {
+.puzzle-card > p:not(.eyebrow),
+.inventory-card > p:not(.eyebrow) {
   color: #d4dec8;
   font-size: 16px;
   line-height: 1.55;
@@ -202,26 +254,137 @@ h1 {
   right: 9px;
 }
 
-.memory-image {
+.memory-photo-frame {
+  position: relative;
   width: 100%;
-  height: 116px;
-  margin: 0 0 20px;
-  border: 3px solid #16242b;
-  background-color: #527e71;
-  background-position: center;
-  background-size: cover;
-  image-rendering: pixelated;
+  margin: 0 0 8px;
+  border: 4px solid #e5c873;
+  background: #111d22;
+  box-shadow: inset 0 0 0 3px #31444a, 4px 4px 0 #122027;
 }
 
-.memory-image.mytilene { background-color: #5685a1; }
-.memory-image.tenerife { background-color: #a85c3e; }
-.memory-image.florence { background-color: #b36d43; }
-.memory-image.summer-2026 { background-color: #3e7b69; }
+.memory-photo-wrap {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #294652;
+}
+
+.memory-photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.memory-photo-empty {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  padding: 16px;
+  border: 8px solid #294652;
+  background: #253d47;
+  color: #d6e0c4;
+  font: 700 13px/1.25 "Trebuchet MS", Arial, sans-serif;
+}
+
+.photo-nav {
+  position: absolute;
+  top: 50%;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  cursor: pointer;
+  border: 2px solid #f1cd7e;
+  background: #203039;
+  color: #fff1c9;
+  font-size: 18px;
+  transform: translateY(-50%);
+}
+
+.photo-nav:hover,
+.photo-nav:focus-visible {
+  outline: none;
+  background: #38505a;
+}
+
+.photo-previous { left: 7px; }
+.photo-next { right: 7px; }
+.photo-nav[hidden] { display: none; }
+
+.photo-index {
+  min-height: 18px;
+  margin-bottom: 14px;
+  color: #b9c8b5 !important;
+  font: 12px/1 "Trebuchet MS", Arial, sans-serif;
+}
 
 .memory-note {
   margin-bottom: 0;
   color: #e9bb6b !important;
   font-style: italic;
+}
+
+#memory-body {
+  white-space: pre-line;
+}
+
+.inventory-card {
+  width: min(760px, calc(100% - 40px));
+  max-height: min(78vh, 560px);
+  overflow: auto;
+  text-align: left;
+}
+
+.inventory-intro {
+  margin-bottom: 18px;
+}
+
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.inventory-item {
+  overflow: hidden;
+  cursor: pointer;
+  border: 3px solid #d8bd6f;
+  background: #192930;
+  color: #fff1c9;
+  padding: 0;
+  text-align: left;
+  box-shadow: 3px 3px 0 #122027;
+}
+
+.inventory-item:hover,
+.inventory-item:focus-visible {
+  outline: none;
+  border-color: #fff0a8;
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 #122027;
+}
+
+.inventory-thumbnail {
+  display: grid;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  place-items: center;
+  background: #35515c;
+  background-position: center;
+  background-size: cover;
+  color: #d9e5c9;
+  font: 700 11px/1 "Trebuchet MS", Arial, sans-serif;
+}
+
+.inventory-item-title {
+  display: block;
+  min-height: 44px;
+  padding: 8px;
+  font-size: 14px;
+  line-height: 1.15;
 }
 
 .rune-row {
@@ -311,7 +474,12 @@ kbd {
 
   .overlay-copy,
   .memory-card,
-  .puzzle-card {
+  .puzzle-card,
+  .inventory-card {
     padding: 22px;
+  }
+
+  .inventory-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

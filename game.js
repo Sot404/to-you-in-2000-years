@@ -6,6 +6,21 @@
   ctx.imageSmoothingEnabled = false;
 
   const startScreen = document.querySelector("#start-screen");
+  const memoryModal = document.querySelector("#memory-modal");
+  const memoryPlace = document.querySelector("#memory-place");
+  const memoryTitle = document.querySelector("#memory-title");
+  const memoryBody = document.querySelector("#memory-body");
+  const memoryNote = document.querySelector("#memory-note");
+  const memoryPhoto = document.querySelector("#memory-photo");
+  const memoryPhotoEmpty = document.querySelector("#memory-photo-empty");
+  const memoryPhotoIndex = document.querySelector("#memory-photo-index");
+  const previousPhoto = document.querySelector("#memory-previous");
+  const nextPhoto = document.querySelector("#memory-next");
+  const inventoryModal = document.querySelector("#inventory-modal");
+  const inventoryButton = document.querySelector("#inventory-button");
+  const inventoryCount = document.querySelector("#inventory-count");
+  const inventoryGrid = document.querySelector("#inventory-grid");
+  const inventoryIntro = document.querySelector("#inventory-intro");
   const travelModal = document.querySelector("#puzzle-modal");
   const travelEyebrow = document.querySelector("#puzzle-modal .eyebrow");
   const travelTitle = document.querySelector("#puzzle-title");
@@ -16,6 +31,12 @@
   const cancelTravel = document.querySelector("#cancel-travel");
   const prompt = document.querySelector("#prompt");
   const keys = new Set();
+  const memories = (window.MEMORIES || []).map((memory) => ({
+    ...memory,
+    images: Array.isArray(memory.images) ? memory.images.filter(Boolean) : [],
+  }));
+  const memoriesByShrine = new Map(memories.map((memory) => [memory.shrine, memory]));
+  const discoveredMemories = new Set(JSON.parse(localStorage.getItem("to-you-discovered-memories") || "[]"));
 
   const state = {
     running: false,
@@ -41,6 +62,8 @@
   ];
 
   let collision = null;
+  let activeMemory = null;
+  let activePhotoIndex = 0;
   const shrines = shrineLocations.map(([x, y], index) => ({ x, y, id: `shrine-${index + 1}`, number: index + 1 }));
 
   const seaWaves = [[908, 42, 12], [928, 91, 9], [899, 157, 14], [929, 214, 10], [903, 337, 13], [932, 421, 10], [906, 512, 14], [932, 586, 9], [868, 510, 12], [875, 388, 8]];
@@ -297,6 +320,90 @@
     return shrines.find((shrine) => Math.hypot(player.x - shrine.x, player.y - shrine.y) < 30) || null;
   }
 
+  function saveDiscoveredMemories() {
+    localStorage.setItem("to-you-discovered-memories", JSON.stringify([...discoveredMemories]));
+  }
+
+  function renderActivePhoto() {
+    const photos = activeMemory?.images || [];
+    const hasPhoto = photos.length > 0;
+    previousPhoto.hidden = photos.length < 2;
+    nextPhoto.hidden = photos.length < 2;
+    memoryPhotoIndex.textContent = hasPhoto ? `Photo ${activePhotoIndex + 1} of ${photos.length}` : "Photo to be added";
+    memoryPhoto.hidden = !hasPhoto;
+    memoryPhotoEmpty.hidden = hasPhoto;
+    if (hasPhoto) memoryPhoto.src = photos[activePhotoIndex];
+  }
+
+  function openMemory(memory, photoIndex = 0) {
+    activeMemory = memory;
+    activePhotoIndex = Math.max(0, Math.min(photoIndex, memory.images.length - 1));
+    discoveredMemories.add(memory.id);
+    saveDiscoveredMemories();
+    updateInventory();
+    memoryPlace.textContent = memory.place || "A collected page";
+    memoryTitle.textContent = memory.title;
+    memoryBody.textContent = memory.text;
+    memoryNote.textContent = `Found at memory shrine ${memory.shrine}.`;
+    renderActivePhoto();
+    state.modalOpen = true;
+    memoryModal.classList.add("is-visible");
+    memoryModal.setAttribute("aria-hidden", "false");
+  }
+
+  function closeMemory() {
+    memoryModal.classList.remove("is-visible");
+    memoryModal.setAttribute("aria-hidden", "true");
+    state.modalOpen = false;
+    refreshPrompt();
+  }
+
+  function changePhoto(step) {
+    if (!activeMemory || activeMemory.images.length < 2) return;
+    activePhotoIndex = (activePhotoIndex + step + activeMemory.images.length) % activeMemory.images.length;
+    renderActivePhoto();
+  }
+
+  function updateInventory() {
+    const collected = memories.filter((memory) => discoveredMemories.has(memory.id));
+    inventoryCount.textContent = String(collected.length);
+    inventoryGrid.replaceChildren();
+    inventoryIntro.textContent = collected.length ? `${collected.length} collected ${collected.length === 1 ? "memory" : "memories"}.` : "The memories you discover will stay here.";
+    collected.forEach((memory) => {
+      const item = document.createElement("button");
+      const thumbnail = document.createElement("span");
+      const title = document.createElement("span");
+      item.type = "button";
+      item.className = "inventory-item";
+      item.title = memory.title;
+      thumbnail.className = "inventory-thumbnail";
+      if (memory.images[0]) thumbnail.style.backgroundImage = `url("${memory.images[0]}")`;
+      else thumbnail.textContent = "Photo pending";
+      title.className = "inventory-item-title";
+      title.textContent = memory.title;
+      item.append(thumbnail, title);
+      item.addEventListener("click", () => {
+        closeInventory();
+        openMemory(memory);
+      });
+      inventoryGrid.append(item);
+    });
+  }
+
+  function openInventory() {
+    updateInventory();
+    state.modalOpen = true;
+    inventoryModal.classList.add("is-visible");
+    inventoryModal.setAttribute("aria-hidden", "false");
+  }
+
+  function closeInventory() {
+    inventoryModal.classList.remove("is-visible");
+    inventoryModal.setAttribute("aria-hidden", "true");
+    state.modalOpen = false;
+    refreshPrompt();
+  }
+
   function interactionAtPlayer() {
     const shrine = nearestShrine();
     if (shrine && !state.swimming) return { type: "shrine", value: shrine };
@@ -310,7 +417,10 @@
   function refreshPrompt() {
     if (!state.running || state.modalOpen) return;
     const interaction = interactionAtPlayer();
-    if (interaction?.type === "shrine") prompt.textContent = `E · Memory shrine ${interaction.value.number}`;
+    if (interaction?.type === "shrine") {
+      const memory = memoriesByShrine.get(interaction.value.number);
+      prompt.textContent = memory ? `E · ${memory.title}` : `E · Memory shrine ${interaction.value.number}`;
+    }
     else if (interaction?.type === "swim") prompt.textContent = "E · Go for a swim?";
     else if (interaction?.type === "shore") prompt.textContent = "E · Return to shore?";
     else if (interaction?.type === "route") prompt.textContent = `E · ${interaction.value.label}`;
@@ -348,6 +458,11 @@
       return;
     }
     if (interaction.type === "shrine") {
+      const memory = memoriesByShrine.get(interaction.value.number);
+      if (memory) {
+        openMemory(memory);
+        return;
+      }
       showModal({ eyebrow: "A memory is waiting", title: `Memory shrine ${interaction.value.number}`, body: "This shrine is reserved for one of your memories. When you choose what belongs here, it can open a photo, a note, a sound, or a small scene.", status: "Not written yet." });
       return;
     }
@@ -411,15 +526,28 @@
     refreshPrompt();
   });
   document.querySelector("#close-puzzle").addEventListener("click", closeTravelModal);
+  document.querySelector("#close-memory").addEventListener("click", closeMemory);
+  document.querySelector("#close-inventory").addEventListener("click", closeInventory);
   confirmTravel.addEventListener("click", confirmAction);
   cancelTravel.addEventListener("click", closeTravelModal);
+  inventoryButton.addEventListener("click", openInventory);
+  previousPhoto.addEventListener("click", () => changePhoto(-1));
+  nextPhoto.addEventListener("click", () => changePhoto(1));
+  memoryPhoto.addEventListener("error", () => {
+    memoryPhoto.hidden = true;
+    memoryPhotoEmpty.hidden = false;
+    memoryPhotoIndex.textContent = "Photo file not found";
+  });
+  updateInventory();
 
   window.addEventListener("keydown", (event) => {
     const key = event.key.toLowerCase();
     const controlKeys = ["arrowup", "arrowdown", "arrowleft", "arrowright", "w", "a", "s", "d", "e", "enter", "escape"];
     if (controlKeys.includes(key)) event.preventDefault();
-    if (key === "escape" && travelModal.classList.contains("is-visible")) {
-      closeTravelModal();
+    if (key === "escape") {
+      if (memoryModal.classList.contains("is-visible")) closeMemory();
+      else if (inventoryModal.classList.contains("is-visible")) closeInventory();
+      else if (travelModal.classList.contains("is-visible")) closeTravelModal();
       return;
     }
     if ((key === "e" || key === "enter") && state.running && !state.modalOpen) {

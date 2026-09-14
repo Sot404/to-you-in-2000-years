@@ -1,36 +1,15 @@
-// Add a photo by placing it in assets/memories/ and setting image to its path.
-// The game keeps working when image is null, which is useful while collecting photos.
+// One entry belongs to one burgundy shrine. Keep image files in assets/memories/<id>/.
+// Add more image paths to images when a memory has more than one photo.
 window.MEMORIES = [
   {
-    id: "mytilene",
-    title: "Η πρώτη εβδομάδα στη Μυτιλήνη",
-    place: "Chapter I · Μυτιλήνη",
-    body: "Εδώ θα μπει η πρώτη φωτογραφία ή μια μικρή λεπτομέρεια από εκείνες τις μέρες. Κάτι που θα θυμίσει μόνο σε εμάς γιατί αυτή η αρχή ήταν τόσο δική μας.",
-    note: "[Προσχέδιο: μια πρόταση για το πρώτο πράγμα που σε έκανε να χαμογελάσεις.]",
-    image: null,
-  },
-  {
-    id: "tenerife",
-    title: "Τενερίφη, κάτω από έναν άλλο ουρανό",
-    place: "Chapter II · Τενερίφη",
-    body: "Ένα μέρος για τις στιγμές που έμοιαζαν λίγο απίθανες, αλλά τις ζήσαμε κανονικά. Θα γεμίσει όταν βρεθούν οι φωτογραφίες και οι μικρές ιστορίες του ταξιδιού.",
-    note: "[Προσχέδιο: βάλε εδώ ένα αστείο ή ένα αντικείμενο από το ταξίδι.]",
-    image: null,
-  },
-  {
-    id: "florence",
-    title: "Φλωρεντία σε αποχρώσεις κεραμιδιού",
-    place: "Chapter III · Φλωρεντία",
-    body: "Πίσω από την ήσυχη πύλη, μια πόλη που περιμένει να αποκτήσει τις δικές μας λεπτομέρειες: μια διαδρομή, ένα τραπέζι, μια στιγμή που δεν έβγαλε ποτέ νόημα σε κανέναν άλλον.",
-    note: "[Προσχέδιο: ο γρίφος της πύλης μπορεί να γίνει κάτι που ξέρετε μόνο εσείς.]",
-    image: null,
-  },
-  {
-    id: "summer-2026",
-    title: "Καλοκαίρι 2026",
-    place: "Chapter IV · Αυτό που έρχεται",
-    body: "Αυτή η ανάμνηση δεν χρειάζεται να είναι τελειωμένη ακόμα. Μπορεί να μείνει σαν υπόσχεση: για όσα θα συμβούν, για όσα θα κάνουμε αυθόρμητα, για τα πράγματα που δεν ξέρουμε ακόμη πως θα θυμόμαστε.",
-    note: "[Προσχέδιο: η τελευταία φωτογραφία μπορεί να μπει λίγο πριν της το δώσεις.]",
-    image: null,
+    id: "mytilene-first-week",
+    shrine: 1,
+    title: "The first week in Mytilene",
+    place: "Mytilene",
+    text: "Replace this with the memory you want her to read. A memory can be a short note, an inside joke, or a few lines about one exact moment.",
+    images: [
+      // "assets/memories/mytilene-first-week/01.jpg",
+      // "assets/memories/mytilene-first-week/02.jpg",
+    ],
   },
 ];
