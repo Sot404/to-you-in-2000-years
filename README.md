@@ -16,6 +16,8 @@ Then open `http://localhost:4173`.
 
 `background_1.png` is the first map. The player begins at the campsite in the lower-left area. The train, boat, and airplane are active routes that will later lead to their own maps and memories.
 
+`background_1_collision_notes.png` is an invisible gameplay layer. Magenta marks walkable paths, gold marks swimmable water, and burgundy marks memory shrines. The game compares it with the visible map at runtime, so the annotation is never displayed to the player.
+
 The static pixel art is rendered on the canvas and stays intact. `game.js` layers small animations above it: sea and lake glints, waterfall movement, campfire flicker, and route markers.
 
 ## Adding memories and maps

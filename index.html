@@ -47,13 +47,17 @@
             <button class="icon-button close-button" id="close-puzzle" type="button" aria-label="Κλείσε τον γρίφο">×</button>
             <p class="eyebrow">The quiet gate</p>
             <h2 id="puzzle-title">Η πύλη θέλει έναν παλιό κωδικό.</h2>
-            <p>Προς το παρόν είναι ένα μικρό προσχέδιο. Διάλεξε τα σημάδια με τη σειρά: φεγγάρι, λουλούδι, αστέρι.</p>
+            <p id="travel-text">A route is waiting to be explored.</p>
             <div class="rune-row" aria-label="Rune puzzle">
               <button class="rune-button" data-rune="moon" type="button" aria-label="Φεγγάρι">☾</button>
               <button class="rune-button" data-rune="flower" type="button" aria-label="Λουλούδι">✦</button>
               <button class="rune-button" data-rune="star" type="button" aria-label="Αστέρι">✧</button>
             </div>
             <p class="puzzle-status" id="puzzle-status"></p>
+            <div class="travel-actions" id="travel-actions" hidden>
+              <button class="primary-button" id="confirm-travel" type="button">Yes</button>
+              <button class="secondary-button" id="cancel-travel" type="button">No</button>
+            </div>
           </div>
         </section>
       </section>

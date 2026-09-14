@@ -57,9 +57,9 @@ h1 {
 }
 
 .erased-years {
-  color: #d99b83;
+  color: #f7e5ba;
   text-decoration-line: line-through;
-  text-decoration-color: #d56555;
+  text-decoration-color: #f7e5ba;
   text-decoration-thickness: 3px;
 }
 
@@ -247,6 +247,27 @@ h1 {
 /* The former rune modal now introduces routes that will receive their own maps. */
 #puzzle-modal .rune-row {
   display: none;
+}
+
+.travel-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.secondary-button {
+  cursor: pointer;
+  border: 2px solid #7f9791;
+  background: #263b42;
+  color: #fff5d2;
+  padding: 10px 16px;
+}
+
+.secondary-button:hover,
+.secondary-button:focus-visible {
+  outline: none;
+  background: #39525a;
 }
 
 .controls {
