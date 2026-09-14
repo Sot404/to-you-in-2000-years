@@ -274,7 +274,8 @@ h1 {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  background: #182b35;
 }
 
 .memory-photo-empty {
@@ -374,7 +375,8 @@ h1 {
   place-items: center;
   background: #35515c;
   background-position: center;
-  background-size: cover;
+  background-repeat: no-repeat;
+  background-size: contain;
   color: #d9e5c9;
   font: 700 11px/1 "Trebuchet MS", Arial, sans-serif;
 }

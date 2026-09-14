@@ -332,7 +332,10 @@
     memoryPhotoIndex.textContent = hasPhoto ? `Photo ${activePhotoIndex + 1} of ${photos.length}` : "Photo to be added";
     memoryPhoto.hidden = !hasPhoto;
     memoryPhotoEmpty.hidden = hasPhoto;
-    if (hasPhoto) memoryPhoto.src = photos[activePhotoIndex];
+    if (hasPhoto) {
+      memoryPhoto.style.objectFit = activeMemory.fit === "cover" ? "cover" : "contain";
+      memoryPhoto.src = photos[activePhotoIndex];
+    }
   }
 
   function openMemory(memory, photoIndex = 0) {
@@ -377,7 +380,10 @@
       item.className = "inventory-item";
       item.title = memory.title;
       thumbnail.className = "inventory-thumbnail";
-      if (memory.images[0]) thumbnail.style.backgroundImage = `url("${memory.images[0]}")`;
+      if (memory.images[0]) {
+        thumbnail.style.backgroundImage = `url("${memory.images[0]}")`;
+        thumbnail.style.backgroundSize = memory.fit === "cover" ? "cover" : "contain";
+      }
       else thumbnail.textContent = "Photo pending";
       title.className = "inventory-item-title";
       title.textContent = memory.title;

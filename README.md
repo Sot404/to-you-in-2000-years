@@ -45,10 +45,13 @@ Memory entries live in `data/memories.js`; their prose and images can be complet
     "assets/memories/mytilene-first-week/01.jpg",
     "assets/memories/mytilene-first-week/02.jpg",
   ],
+  // fit: "cover", // Optional. The default keeps the full photo visible.
 },
 ```
 
 Opening that shrine reveals the card and permanently adds it to the browser inventory. The small grid button in the upper-right corner of the map opens every discovered card again. A missing or empty image list still works and displays a framed placeholder until photos are ready.
+
+Photos use `contain` by default, so portrait and wide images are never cropped. The remaining space uses the dark card background. Add `fit: "cover"` only when you deliberately want an image to fill the frame and accept cropping.
 
 ## Publishing later
 
