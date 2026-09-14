@@ -34,9 +34,14 @@
     { id: "boat", x: 864, y: 283, label: "The boat", title: "The boat is tied to the dock.", body: "This route will become a separate place to explore, with its own memories and small secrets.", status: "Destination not drawn yet." },
     { id: "plane", x: 770, y: 577, label: "The airplane", title: "The airplane has not left yet.", body: "This route will take us somewhere further away. For now, it stays here as a promise of the next chapter.", status: "Destination not drawn yet." },
   ];
+  const shrineLocations = [
+    [653, 183], [269, 188], [391, 198], [690, 266], [81, 294],
+    [656, 321], [186, 351], [286, 374], [58, 391], [751, 423],
+    [527, 451], [411, 458], [822, 453], [613, 548], [639, 578],
+  ];
 
   let collision = null;
-  let shrines = [];
+  const shrines = shrineLocations.map(([x, y], index) => ({ x, y, id: `shrine-${index + 1}`, number: index + 1 }));
 
   const seaWaves = [[908, 42, 12], [928, 91, 9], [899, 157, 14], [929, 214, 10], [903, 337, 13], [932, 421, 10], [906, 512, 14], [932, 586, 9], [868, 510, 12], [875, 388, 8]];
   const lakeGlints = [[392, 333], [470, 354], [531, 379], [415, 424], [503, 443], [356, 394]];
@@ -67,38 +72,20 @@
     return destination;
   }
 
-  function findShrines(shrineMask) {
-    const visited = new Uint8Array(shrineMask.length);
-    const found = [];
-    for (let y = 0; y < canvas.height; y += 1) {
-      for (let x = 0; x < canvas.width; x += 1) {
-        const start = indexAt(x, y);
-        if (!shrineMask[start] || visited[start]) continue;
-        const stack = [[x, y]];
-        let count = 0;
-        let totalX = 0;
-        let totalY = 0;
-        visited[start] = 1;
-        while (stack.length) {
-          const [currentX, currentY] = stack.pop();
-          count += 1;
-          totalX += currentX;
-          totalY += currentY;
-          [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([stepX, stepY]) => {
-            const nextX = currentX + stepX;
-            const nextY = currentY + stepY;
-            if (nextX < 0 || nextX >= canvas.width || nextY < 0 || nextY >= canvas.height) return;
-            const next = indexAt(nextX, nextY);
-            if (shrineMask[next] && !visited[next]) {
-              visited[next] = 1;
-              stack.push([nextX, nextY]);
-            }
-          });
-        }
-        if (count > 24) found.push({ x: Math.round(totalX / count), y: Math.round(totalY / count) });
+  function paintDisc(mask, centerX, centerY, radius) {
+    for (let y = Math.floor(centerY - radius); y <= Math.ceil(centerY + radius); y += 1) {
+      for (let x = Math.floor(centerX - radius); x <= Math.ceil(centerX + radius); x += 1) {
+        if (x >= 0 && x < canvas.width && y >= 0 && y < canvas.height && (x - centerX) ** 2 + (y - centerY) ** 2 <= radius ** 2) mask[indexAt(x, y)] = 1;
       }
     }
-    return found.sort((a, b) => a.y - b.y || a.x - b.x).map((shrine, index) => ({ ...shrine, id: `shrine-${index + 1}`, number: index + 1 }));
+  }
+
+  function paintConnection(mask, fromX, fromY, toX, toY, radius) {
+    const steps = Math.ceil(Math.hypot(toX - fromX, toY - fromY));
+    for (let step = 0; step <= steps; step += 2) {
+      const progress = step / steps;
+      paintDisc(mask, fromX + (toX - fromX) * progress, fromY + (toY - fromY) * progress, radius);
+    }
   }
 
   function prepareCollisionMap() {
@@ -127,14 +114,19 @@
       if (greenChange < -30 && blueChange < 40 && redChange < 20) shrine[pixel] = 1;
     }
 
-    const walkable = expandMask(path, 7);
-    const swimmable = expandMask(water, 5);
-    const shrineZones = expandMask(shrine, 5);
+    const walkable = expandMask(path, 4);
+    const swimmable = expandMask(water, 3);
+    const shrineZones = expandMask(shrine, 2);
     for (let pixel = 0; pixel < walkable.length; pixel += 1) {
       if (shrineZones[pixel]) walkable[pixel] = 1;
     }
+    // The hand-drawn paths deliberately stop just short of the station and runway art.
+    paintDisc(walkable, 128, 68, 21);
+    paintConnection(walkable, 128, 68, 180, 91, 11);
+    paintDisc(walkable, 770, 577, 23);
+    paintConnection(walkable, 655, 550, 770, 577, 11);
+    paintDisc(walkable, 864, 283, 20);
     collision = { walkable, swimmable, shrineZones };
-    shrines = findShrines(shrine);
     const spawn = nearestMaskedPoint(player.x, player.y, collision.walkable);
     player.x = spawn.x;
     player.y = spawn.y;
