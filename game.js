@@ -37,6 +37,13 @@
   }));
   const memoriesByShrine = new Map(memories.map((memory) => [memory.shrine, memory]));
   const discoveredMemories = new Set(JSON.parse(localStorage.getItem("to-you-discovered-memories") || "[]"));
+  const waterMoment = {
+    id: "water-moment",
+    title: "Floating for a while",
+    place: "A small surprise",
+    text: "Some memories find you when you stop looking for them.",
+    images: ["assets/memories/water/1.jpeg"],
+  };
 
   const state = {
     running: false,
@@ -68,7 +75,7 @@
 
   const seaWaves = [[908, 42, 12], [928, 91, 9], [899, 157, 14], [929, 214, 10], [903, 337, 13], [932, 421, 10], [906, 512, 14], [932, 586, 9], [868, 510, 12], [875, 388, 8]];
   const lakeGlints = [[392, 333], [470, 354], [531, 379], [415, 424], [503, 443], [356, 394]];
-  const waterfallFrames = [[327, 148], [332, 183], [339, 224], [345, 266], [375, 502], [379, 545], [382, 602]];
+  const waterfallFrames = [[340, 148], [345, 183], [350, 224], [356, 266], [393, 502], [399, 545], [404, 602]];
 
   function indexAt(x, y) {
     return y * canvas.width + x;
@@ -338,16 +345,18 @@
     }
   }
 
-  function openMemory(memory, photoIndex = 0) {
+  function openMemory(memory, photoIndex = 0, { collect = true, note = null } = {}) {
     activeMemory = memory;
     activePhotoIndex = Math.max(0, Math.min(photoIndex, memory.images.length - 1));
-    discoveredMemories.add(memory.id);
-    saveDiscoveredMemories();
-    updateInventory();
+    if (collect) {
+      discoveredMemories.add(memory.id);
+      saveDiscoveredMemories();
+      updateInventory();
+    }
     memoryPlace.textContent = memory.place || "A collected page";
     memoryTitle.textContent = memory.title;
     memoryBody.textContent = memory.text;
-    memoryNote.textContent = `Found at memory shrine ${memory.shrine}.`;
+    memoryNote.textContent = note ?? (memory.shrine ? `Found at memory shrine ${memory.shrine}.` : "");
     renderActivePhoto();
     state.modalOpen = true;
     memoryModal.classList.add("is-visible");
@@ -489,7 +498,11 @@
       player.y = shoreSpawn.y;
       state.swimming = false;
     }
+    const foundWaterMoment = state.pendingAction === "enter-water" && Math.random() < 1 / 3;
     closeTravelModal();
+    if (foundWaterMoment) {
+      openMemory(waterMoment, 0, { collect: false, note: "Found while swimming." });
+    }
   }
 
   function move(delta) {
