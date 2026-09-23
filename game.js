@@ -118,12 +118,75 @@
     }
   }
 
+  function paintEllipse(mask, centerX, centerY, radiusX, radiusY) {
+    for (let y = Math.floor(centerY - radiusY); y <= Math.ceil(centerY + radiusY); y += 1) {
+      for (let x = Math.floor(centerX - radiusX); x <= Math.ceil(centerX + radiusX); x += 1) {
+        const normalizedX = (x - centerX) / radiusX;
+        const normalizedY = (y - centerY) / radiusY;
+        if (x >= 0 && x < canvas.width && y >= 0 && y < canvas.height && normalizedX ** 2 + normalizedY ** 2 <= 1) mask[indexAt(x, y)] = 1;
+      }
+    }
+  }
+
   function clearMaskArea(mask, left, top, width, height) {
     const right = Math.min(canvas.width, left + width);
     const bottom = Math.min(canvas.height, top + height);
     for (let y = Math.max(0, top); y < bottom; y += 1) {
       for (let x = Math.max(0, left); x < right; x += 1) mask[indexAt(x, y)] = 0;
     }
+  }
+
+  function eraseEllipse(mask, centerX, centerY, radiusX, radiusY) {
+    for (let y = Math.floor(centerY - radiusY); y <= Math.ceil(centerY + radiusY); y += 1) {
+      for (let x = Math.floor(centerX - radiusX); x <= Math.ceil(centerX + radiusX); x += 1) {
+        const normalizedX = (x - centerX) / radiusX;
+        const normalizedY = (y - centerY) / radiusY;
+        if (x >= 0 && x < canvas.width && y >= 0 && y < canvas.height && normalizedX ** 2 + normalizedY ** 2 <= 1) mask[indexAt(x, y)] = 0;
+      }
+    }
+  }
+
+  function retainLargestWalkableArea(mask) {
+    const visited = new Uint8Array(mask.length);
+    let largestArea = [];
+    for (let y = 0; y < canvas.height; y += 1) {
+      for (let x = 0; x < canvas.width; x += 1) {
+        const start = indexAt(x, y);
+        if (!mask[start] || visited[start]) continue;
+        const area = [];
+        const queue = [start];
+        visited[start] = 1;
+        for (let cursor = 0; cursor < queue.length; cursor += 1) {
+          const point = queue[cursor];
+          area.push(point);
+          const pointX = point % canvas.width;
+          const pointY = Math.floor(point / canvas.width);
+          [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([offsetX, offsetY]) => {
+            const nextX = pointX + offsetX;
+            const nextY = pointY + offsetY;
+            if (nextX < 0 || nextX >= canvas.width || nextY < 0 || nextY >= canvas.height) return;
+            const next = indexAt(nextX, nextY);
+            if (mask[next] && !visited[next]) {
+              visited[next] = 1;
+              queue.push(next);
+            }
+          });
+        }
+        if (area.length > largestArea.length) largestArea = area;
+      }
+    }
+    mask.fill(0);
+    largestArea.forEach((point) => { mask[point] = 1; });
+  }
+
+  function applyPathEdits(mask) {
+    // Green annotations: bridge small gaps with natural, rounded walkable areas.
+    [[793, 338, 7, 13], [419, 216, 14, 9], [320, 218, 25, 7], [524, 474, 11, 17], [795, 298, 11, 16], [677, 277, 11, 24], [697, 232, 11, 26], [536, 508, 19, 21], [481, 248, 26, 10], [545, 264, 28, 23], [323, 223, 13, 6]].forEach((edit) => paintEllipse(mask, ...edit));
+    paintConnection(mask, 630, 186, 652, 120, 10);
+    paintConnection(mask, 764, 426, 756, 490, 10);
+
+    // Red annotations: remove the dead-end islands that can trap the player.
+    [[821, 391, 14, 17], [312, 352, 7, 25], [73, 363, 28, 9], [425, 474, 34, 7], [812, 457, 24, 28]].forEach((edit) => eraseEllipse(mask, ...edit));
   }
 
   function simplifyRightSea(walkable, swimmable) {
@@ -179,6 +242,8 @@
     paintConnection(walkable, 655, 550, 770, 577, 11);
     paintDisc(walkable, 864, 283, 20);
     simplifyRightSea(walkable, swimmable);
+    applyPathEdits(walkable);
+    retainLargestWalkableArea(walkable);
     collision = { walkable, swimmable, shrineZones };
     const spawn = nearestMaskedPoint(player.x, player.y, collision.walkable);
     player.x = spawn.x;
