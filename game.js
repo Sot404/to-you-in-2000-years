@@ -75,7 +75,7 @@
 
   const seaWaves = [[908, 42, 12], [928, 91, 9], [899, 157, 14], [929, 214, 10], [903, 337, 13], [932, 421, 10], [906, 512, 14], [932, 586, 9], [868, 510, 12], [875, 388, 8]];
   const lakeGlints = [[392, 333], [470, 354], [531, 379], [415, 424], [503, 443], [356, 394]];
-  const waterfallFrames = [[340, 148], [356, 183], [361, 224], [367, 266], [468, 502], [474, 545], [479, 602]];
+  const waterfallFrames = [[337, 148], [349, 183], [361, 224], [367, 266], [468, 502], [474, 545], [474, 602]];
 
   function indexAt(x, y) {
     return y * canvas.width + x;
@@ -230,22 +230,6 @@
     ctx.restore();
   }
 
-  function drawCampfire(time) {
-    const flicker = Math.floor(time / 120) % 3;
-    ctx.save();
-    ctx.globalAlpha = 0.18;
-    ctx.fillStyle = "#f5b957";
-    ctx.fillRect(133 - flicker, 444 - flicker, 22 + flicker * 2, 22 + flicker * 2);
-    ctx.globalAlpha = 0.92;
-    ctx.fillStyle = "#ffcf66";
-    ctx.fillRect(141, 446 - flicker, 6, 9 + flicker);
-    ctx.fillStyle = "#f36b3f";
-    ctx.fillRect(142, 451, 4, 7);
-    ctx.fillStyle = "#fff0a8";
-    ctx.fillRect(143, 447 - flicker, 2, 4);
-    ctx.restore();
-  }
-
   function drawRouteMarker(point, time) {
     const pulse = Math.floor(time / 330) % 3;
     const y = point.y - 25 - pulse;
@@ -314,7 +298,6 @@
     }
     ctx.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
     drawWaterAnimation(time);
-    drawCampfire(time);
     routePoints.filter((point) => point.id !== "campfire").forEach((point) => drawRouteMarker(point, time));
     drawPlayer(time);
   }
@@ -403,6 +386,12 @@
       });
       inventoryGrid.append(item);
     });
+  }
+
+  function resetInventory() {
+    discoveredMemories.clear();
+    localStorage.removeItem("to-you-discovered-memories");
+    updateInventory();
   }
 
   function openInventory() {
@@ -547,6 +536,7 @@
   document.querySelector("#close-puzzle").addEventListener("click", closeTravelModal);
   document.querySelector("#close-memory").addEventListener("click", closeMemory);
   document.querySelector("#close-inventory").addEventListener("click", closeInventory);
+  document.querySelector("#reset-inventory").addEventListener("click", resetInventory);
   confirmTravel.addEventListener("click", confirmAction);
   cancelTravel.addEventListener("click", closeTravelModal);
   inventoryButton.addEventListener("click", openInventory);

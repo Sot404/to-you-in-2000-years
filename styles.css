@@ -254,6 +254,12 @@ h1 {
   right: 9px;
 }
 
+.reset-inventory-button {
+  top: 9px;
+  left: 9px;
+  font-size: 20px;
+}
+
 .memory-photo-frame {
   position: relative;
   width: 100%;
