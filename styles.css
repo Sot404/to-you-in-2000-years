@@ -427,6 +427,10 @@ h1 {
   margin-top: 20px;
 }
 
+.travel-actions[hidden] {
+  display: none;
+}
+
 .secondary-button {
   cursor: pointer;
   border: 2px solid #7f9791;

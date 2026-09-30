@@ -57,7 +57,7 @@
   const collisionNotesImage = new Image();
   const player = { x: 190, y: 456, size: 26, speed: 118, direction: "right" };
   const routePoints = [
-    { id: "campfire", x: 144, y: 453, label: "The campsite", title: "The campsite", body: "This is where the map begins. The first memory can live here when you are ready to write it.", status: "A quiet beginning." },
+    { id: "campfire", x: 144, y: 453, label: "The campsite", title: "The campsite", body: "Are you ready to explore the world of nostalgia and reclaim your lost memories?", status: "" },
     { id: "train", x: 128, y: 68, label: "The train", title: "The train is waiting.", body: "This route will lead to a future map. We can decide together which memory belongs behind this station.", status: "Destination not drawn yet." },
     { id: "boat", x: 864, y: 283, label: "The boat", title: "The boat is tied to the dock.", body: "This route will become a separate place to explore, with its own memories and small secrets.", status: "Destination not drawn yet." },
     { id: "plane", x: 770, y: 577, label: "The airplane", title: "The airplane has not left yet.", body: "This route will take us somewhere further away. For now, it stays here as a promise of the next chapter.", status: "Destination not drawn yet." },
@@ -203,51 +203,71 @@
     paintConnection(walkable, 775, 340, 799, 356, 9);
   }
 
+  // Some browsers treat images loaded from file:// as a different origin and
+  // refuse to read their pixels from a canvas.  The normal collision map is
+  // more precise, but this keeps a downloaded copy fully playable too.
+  function prepareFallbackCollisionMap() {
+    const walkable = new Uint8Array(canvas.width * canvas.height);
+    const swimmable = new Uint8Array(canvas.width * canvas.height);
+    const shrineZones = new Uint8Array(canvas.width * canvas.height);
+    walkable.fill(1);
+    shrineLocations.forEach(([x, y]) => paintDisc(shrineZones, x, y, 30));
+    paintDisc(swimmable, 840, 360, 55);
+    paintDisc(swimmable, 888, 440, 90);
+    paintDisc(swimmable, 892, 525, 58);
+    collision = { walkable, swimmable, shrineZones };
+  }
+
   function prepareCollisionMap() {
     if (!mapImage.complete || !collisionNotesImage.complete || !mapImage.naturalWidth || !collisionNotesImage.naturalWidth) return;
-    const referenceCanvas = document.createElement("canvas");
-    const notesCanvas = document.createElement("canvas");
-    referenceCanvas.width = notesCanvas.width = canvas.width;
-    referenceCanvas.height = notesCanvas.height = canvas.height;
-    const referenceContext = referenceCanvas.getContext("2d", { willReadFrequently: true });
-    const notesContext = notesCanvas.getContext("2d", { willReadFrequently: true });
-    referenceContext.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
-    notesContext.drawImage(collisionNotesImage, 0, 0, canvas.width, canvas.height);
-    const reference = referenceContext.getImageData(0, 0, canvas.width, canvas.height).data;
-    const notes = notesContext.getImageData(0, 0, canvas.width, canvas.height).data;
-    const path = new Uint8Array(canvas.width * canvas.height);
-    const water = new Uint8Array(canvas.width * canvas.height);
-    const shrine = new Uint8Array(canvas.width * canvas.height);
+    try {
+      const referenceCanvas = document.createElement("canvas");
+      const notesCanvas = document.createElement("canvas");
+      referenceCanvas.width = notesCanvas.width = canvas.width;
+      referenceCanvas.height = notesCanvas.height = canvas.height;
+      const referenceContext = referenceCanvas.getContext("2d", { willReadFrequently: true });
+      const notesContext = notesCanvas.getContext("2d", { willReadFrequently: true });
+      referenceContext.drawImage(mapImage, 0, 0, canvas.width, canvas.height);
+      notesContext.drawImage(collisionNotesImage, 0, 0, canvas.width, canvas.height);
+      const reference = referenceContext.getImageData(0, 0, canvas.width, canvas.height).data;
+      const notes = notesContext.getImageData(0, 0, canvas.width, canvas.height).data;
+      const path = new Uint8Array(canvas.width * canvas.height);
+      const water = new Uint8Array(canvas.width * canvas.height);
+      const shrine = new Uint8Array(canvas.width * canvas.height);
 
-    for (let pixel = 0; pixel < path.length; pixel += 1) {
-      const color = pixel * 4;
-      const redChange = notes[color] - reference[color];
-      const greenChange = notes[color + 1] - reference[color + 1];
-      const blueChange = notes[color + 2] - reference[color + 2];
-      if (redChange > 30 && blueChange > 50) path[pixel] = 1;
-      if (redChange > 35 && greenChange > 15 && blueChange < -30) water[pixel] = 1;
-      if (greenChange < -30 && blueChange < 40 && redChange < 20) shrine[pixel] = 1;
-    }
+      for (let pixel = 0; pixel < path.length; pixel += 1) {
+        const color = pixel * 4;
+        const redChange = notes[color] - reference[color];
+        const greenChange = notes[color + 1] - reference[color + 1];
+        const blueChange = notes[color + 2] - reference[color + 2];
+        if (redChange > 30 && blueChange > 50) path[pixel] = 1;
+        if (redChange > 35 && greenChange > 15 && blueChange < -30) water[pixel] = 1;
+        if (greenChange < -30 && blueChange < 40 && redChange < 20) shrine[pixel] = 1;
+      }
 
-    const walkable = expandMask(path, 4);
-    const swimmable = expandMask(water, 3);
-    const shrineZones = expandMask(shrine, 2);
-    for (let pixel = 0; pixel < walkable.length; pixel += 1) {
-      if (shrineZones[pixel]) walkable[pixel] = 1;
+      const walkable = expandMask(path, 4);
+      const swimmable = expandMask(water, 3);
+      const shrineZones = expandMask(shrine, 2);
+      for (let pixel = 0; pixel < walkable.length; pixel += 1) {
+        if (shrineZones[pixel]) walkable[pixel] = 1;
+      }
+      // The hand-drawn paths deliberately stop just short of the station and runway art.
+      paintDisc(walkable, 128, 68, 21);
+      paintConnection(walkable, 128, 68, 180, 91, 11);
+      paintDisc(walkable, 770, 577, 23);
+      paintConnection(walkable, 655, 550, 770, 577, 11);
+      paintDisc(walkable, 864, 283, 20);
+      simplifyRightSea(walkable, swimmable);
+      applyPathEdits(walkable);
+      retainLargestWalkableArea(walkable);
+      collision = { walkable, swimmable, shrineZones };
+      const spawn = nearestMaskedPoint(player.x, player.y, collision.walkable);
+      player.x = spawn.x;
+      player.y = spawn.y;
     }
-    // The hand-drawn paths deliberately stop just short of the station and runway art.
-    paintDisc(walkable, 128, 68, 21);
-    paintConnection(walkable, 128, 68, 180, 91, 11);
-    paintDisc(walkable, 770, 577, 23);
-    paintConnection(walkable, 655, 550, 770, 577, 11);
-    paintDisc(walkable, 864, 283, 20);
-    simplifyRightSea(walkable, swimmable);
-    applyPathEdits(walkable);
-    retainLargestWalkableArea(walkable);
-    collision = { walkable, swimmable, shrineZones };
-    const spawn = nearestMaskedPoint(player.x, player.y, collision.walkable);
-    player.x = spawn.x;
-    player.y = spawn.y;
+    catch {
+      prepareFallbackCollisionMap();
+    }
   }
 
   function isOnMask(mask, x, y) {
@@ -589,6 +609,8 @@
 
   mapImage.onload = prepareCollisionMap;
   collisionNotesImage.onload = prepareCollisionMap;
+  mapImage.onerror = prepareFallbackCollisionMap;
+  collisionNotesImage.onerror = prepareFallbackCollisionMap;
   mapImage.src = "background_1.png";
   collisionNotesImage.src = "background_1_collision_notes.png";
 

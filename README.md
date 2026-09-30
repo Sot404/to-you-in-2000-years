@@ -4,7 +4,7 @@ A small desktop-first pixel-art exploration game about shared memories. It is a 
 
 ## Run it
 
-Open `index.html` in a browser. For a local URL during development, run:
+For a local URL during development, run:
 
 ```powershell
 py -m http.server 4173
@@ -53,6 +53,14 @@ Opening that shrine reveals the card and permanently adds it to the browser inve
 
 Photos use `contain` by default, so portrait and wide images are never cropped. The remaining space uses the dark card background. Add `fit: "cover"` only when you deliberately want an image to fill the frame and accept cropping.
 
-## Publishing later
+## Publish with GitHub Pages
 
-The GitHub repository is private. GitHub Pages may require a public repository depending on the GitHub plan, and published Pages sites are public. Decide on the hosting/privacy approach once the personal photos are in place.
+This repository includes a workflow that publishes the game whenever you push to `main`.
+
+1. Push the project to GitHub.
+2. On GitHub, open **Settings → Pages**.
+3. Under **Build and deployment**, set **Source** to **GitHub Actions**.
+4. Open the **Actions** tab and wait for **Deploy to GitHub Pages** to finish.
+5. GitHub will show the game URL in the workflow summary. Send that link to her.
+
+The site runs over a normal `https://` URL, so the collision map and keyboard exploration work without Live Server. A GitHub Pages URL is public to anyone who has it; do not publish personal photos there unless you are comfortable with that.
